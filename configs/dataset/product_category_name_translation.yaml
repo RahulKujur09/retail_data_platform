@@ -1,0 +1,31 @@
+dataset_name : product_category
+
+source:
+  format : csv
+  path : data/landing/product_category_name_translation.csv
+  delimiter : ","
+  header : true
+
+destination:
+  format : parquet
+  path : data/bronze/product_category_name_translation
+  mode : overwrite
+
+schema :
+  module : src.schemas.bronze.product_category_name_schema
+  variable : PRODUCT_CATEGORY_NAME_SCHEMA
+
+partition:
+  enabled : false
+  columns : []
+
+quality:
+  required_columns :
+    - product_category_name
+    - product_category_name_english
+  key_columns : []
+
+metadata:
+  add_ingestion_timestamp : true
+  add_source_file : true
+  add_pipeline_name : true

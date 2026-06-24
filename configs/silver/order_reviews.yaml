@@ -1,0 +1,14 @@
+dataset_name : order_reviews
+
+source : 
+  format : parquet
+  path : data/bronze/order_reviews
+
+destination :
+  format : parquet
+  path : data/silver/order_reviews
+  mode : overwrite
+
+transformation:
+  module: src.transformation.silver.order_reviews
+  function : transform

@@ -1,0 +1,14 @@
+dataset_name : geolocation
+
+source : 
+  format : parquet
+  path : data/bronze/geolocation
+
+destination:
+  format : parquet
+  path : data/silver/geolocation
+  mode : overwrite
+
+transformation:
+  module : src.transformation.silver.geolocation
+  function : transform

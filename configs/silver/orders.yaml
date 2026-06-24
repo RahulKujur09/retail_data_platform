@@ -1,0 +1,14 @@
+dataset_name : orders
+
+source : 
+  format : parquet
+  path : data/bronze/orders
+
+destination :
+  format : parquet
+  path : data/silver/orders
+  mode : overwrite
+
+transformation:
+  module: src.transformation.silver.orders
+  function : transform

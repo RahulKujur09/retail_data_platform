@@ -1,0 +1,38 @@
+dataset_name : order_items
+
+source:
+  format : csv
+  path : data/landing/olist_order_items_dataset.csv
+  delimiter : ","
+  header : true
+
+destination:
+  format : parquet
+  path : data/bronze/order_items
+  mode : overwrite
+
+schema :
+  module : src.schemas.bronze.order_items_schema
+  variable : ORDER_ITEMS_SCHEMA
+
+partition:
+  enabled : false
+  columns : []
+
+quality:
+  required_columns :
+    - order_id
+    - order_item_id
+    - product_id
+    - seller_id
+    - shipping_limit_date
+    - price
+    - freight_value
+  key_columns : 
+    - order_id
+    - order_item_id
+
+metadata:
+  add_ingestion_timestamp : true
+  add_source_file : true
+  add_pipeline_name : true

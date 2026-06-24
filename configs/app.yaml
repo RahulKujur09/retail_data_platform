@@ -1,0 +1,10 @@
+project:
+  name : retail-data-platform
+  enviroment : local
+
+spark : 
+  app_name: RetailDataPlatform
+  master : local[*]
+
+storage:
+  formate: parquet

@@ -1,0 +1,22 @@
+touch configs/.gitkeep
+touch configs/app.yaml
+touch configs/logging.yaml
+touch configs/paths.yaml
+
+touch data/landing/.gitkeep
+touch data/bronze/.gitkeep
+touch data/silver/.gitkeep
+touch data/gold/.gitkeep
+
+touch docs/.gitkeep
+touch notebooks/.gitkeep
+touch sql/.gitkeep
+touch tests/.gitkeep
+
+touch src/common/.gitkeep
+touch src/ingestion/.gitkeep
+touch src/transformation/.gitkeep
+touch src/orchestration/.gitkeep
+touch src/validation/.gitkeep
+touch src/monitoring/.gitkeep
+touch src/utils/.gitkeep

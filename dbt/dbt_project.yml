@@ -1,0 +1,26 @@
+name: retail_data_platform
+
+profile: retail_data_platform
+
+model-paths:
+  - models
+
+seed-paths:
+  - seeds
+
+macro-paths:
+  - macros
+
+test-paths:
+  - tests
+
+models:
+  retail_data_platform:
+    staging:
+      +materialized: view
+
+    marts:
+      +materialized: table
+
+    business:
+      +materialized: table

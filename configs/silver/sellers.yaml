@@ -1,0 +1,14 @@
+dataset_name : sellers
+
+source : 
+  format : parquet
+  path : data/bronze/sellers
+
+destination :
+  format : parquet
+  path : data/silver/sellers
+  mode : overwrite
+
+transformation:
+  module: src.transformation.silver.sellers
+  function : transform

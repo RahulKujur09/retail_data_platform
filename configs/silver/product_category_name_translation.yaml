@@ -1,0 +1,17 @@
+dataset_name : product_category_name_translation
+
+source : 
+  format : parquet
+  path : data/bronze/product_category_name_translation
+
+
+destination :
+  format : parquet
+  path : data/silver/product_category_name_translation
+
+  mode : overwrite
+
+transformation:
+  module: src.transformation.silver.product_category_name_translation
+
+  function : transform

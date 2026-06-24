@@ -1,0 +1,35 @@
+dataset_name : customers
+
+source:
+  format : csv
+  path : data/landing/olist_customers_dataset.csv
+  delimiter : ","
+  header : true
+
+destination:
+  format : parquet
+  path : data/bronze/customers
+  mode : overwrite
+
+schema :
+  module : src.schemas.bronze.customers_schema
+  variable : CUSTOMERS_SCHEMA
+
+partition:
+  enabled : false
+  columns : []
+
+quality:
+  required_columns :
+    - customer_id
+    - customer_unique_id
+    - customer_zip_code_prefix
+    - customer_city
+    - customer_state
+  key_columns : 
+    - customer_id
+
+metadata:
+  add_ingestion_timestamp : true
+  add_source_file : true
+  add_pipeline_name : true

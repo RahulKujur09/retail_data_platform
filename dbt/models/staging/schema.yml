@@ -1,0 +1,89 @@
+version: 2
+
+models:
+
+  - name: stg_customers
+    description: "Staging model for customer information loaded from the silver layer."
+
+    columns:
+      - name: customer_id
+        description: "Primary identifier for a customer."
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_unique_id
+        description: "Business identifier shared across multiple customer accounts."
+        tests:
+          - not_null
+
+  - name: stg_orders
+    description: "Staging model containing order details."
+
+    columns:
+      - name: order_id
+        description: "Unique order identifier."
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: "Customer placing the order."
+        tests:
+          - not_null
+
+  - name: stg_products
+    description: "Staging model containing product information."
+
+    columns:
+      - name: product_id
+        description: "Unique product identifier."
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_sellers
+    description: "Staging model containing seller information."
+
+    columns:
+      - name: seller_id
+        description: "Unique seller identifier."
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_reviews
+    description: "Customer reviews for completed orders."
+
+    columns:
+      - name: review_id
+        description: "Review identifier. Source data contains one malformed record with a NULL value. This is retained for lineage and data quality monitoring."
+
+  - name: stg_payments
+    description: "Payment information associated with orders."
+
+    columns:
+      - name: order_id
+        description: "Order identifier."
+        tests:
+          - not_null
+
+  - name: stg_geolocation
+    description: "Brazilian geolocation reference data."
+
+    columns:
+      - name: geolocation_zip_code_prefix
+        description: "Zip code prefix."
+
+  - name: stg_order_items
+    description: "Individual items contained within an order."
+
+    columns:
+      - name: order_id
+        description: "Order identifier."
+
+      - name: product_id
+        description: "Product identifier."
+
+      - name: seller_id
+        description: "Seller identifier."

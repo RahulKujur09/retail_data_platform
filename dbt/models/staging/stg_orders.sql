@@ -1,0 +1,41 @@
+with source as (
+
+    select *
+    from {{ source('silver', 'orders') }}
+
+),
+
+final as (
+
+    select
+
+        order_id,
+        customer_id,
+        order_status,
+        order_purchase_timestamp,
+        order_approved_at_timestamp,
+        order_delivered_carrier_timestamp,
+        order_delivered_customer_timestamp,
+        order_estimated_delivery_timestamp,
+
+        order_purchase_date,
+        order_purchase_time,
+
+        order_approved_at_date,
+        order_approved_at_time,
+
+        order_delivered_carrier_date,
+        order_delivered_carrier_time,
+
+        order_delivered_customer_date,
+        order_delivered_customer_time,
+
+        order_estimated_delivery_date,
+        order_estimated_delivery_time
+
+    from source
+
+)
+
+select *
+from final

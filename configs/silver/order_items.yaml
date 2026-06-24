@@ -1,0 +1,14 @@
+dataset_name : order_items
+
+source :
+  format : parquet
+  path : data/bronze/order_items
+
+destination:
+  format : parquet
+  path : data/silver/order_items
+  mode : overwrite
+
+transformation:
+  module : src.transformation.silver.order_items
+  function : transform

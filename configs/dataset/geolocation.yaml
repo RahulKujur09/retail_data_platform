@@ -1,0 +1,35 @@
+dataset_name : geolocation
+
+source:
+  format : csv
+  path : data/landing/olist_geolocation_dataset.csv
+  delimiter : ","
+  header : true
+
+destination:
+  format : parquet
+  path : data/bronze/geolocation
+  mode : overwrite
+
+schema :
+  module : src.schemas.bronze.geolocation_schema
+  variable : GEOLOCATION_SCHEMA
+
+partition:
+  enabled : false
+  columns : []
+
+quality:
+  required_columns :
+    - geolocation_zip_code_prefix
+    - geolocation_lat
+    - geolocation_lng
+    - geolocation_city
+    - geolocation_state
+  key_columns : []
+
+
+metadata:
+  add_ingestion_timestamp : true
+  add_source_file : true
+  add_pipeline_name : true

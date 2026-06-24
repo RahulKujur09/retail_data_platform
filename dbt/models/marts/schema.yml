@@ -1,0 +1,94 @@
+version: 2
+
+models:
+
+  - name: dim_customers
+    description: "Customer dimension table."
+
+    columns:
+
+      - name: customer_key
+        description: "Surrogate key."
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: "Business key."
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_products
+    description: "Product dimension."
+
+    columns:
+
+      - name: product_key
+        description: "Surrogate key."
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_sellers
+    description: "Seller dimension."
+
+    columns:
+
+      - name: seller_key
+        description: "Surrogate key."
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_geography
+    description: "Geography dimension."
+
+    columns:
+
+      - name: geography_key
+        description: "Surrogate key."
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_date
+    description: "Date dimension."
+
+    columns:
+
+      - name: date_key
+        description: "Surrogate key."
+        tests:
+          - unique
+          - not_null
+
+  - name: fact_sales
+    description: "Fact table storing order level sales metrics."
+
+    columns:
+
+      - name: order_id
+        description: "Order identifier."
+        tests:
+          - not_null
+
+      - name: customer_key
+        description: "Foreign key to customer dimension."
+        tests:
+          - not_null
+
+      - name: product_key
+        description: "Foreign key to product dimension.May be NULL for canceled or unavailable orders where no order item exists."
+
+      - name: seller_key
+        description: "Foreign key to seller dimension. May be NULL for canceled or unavailable orders that never reached fulfillment"
+
+      - name: payment_value
+        description: "Total payment amount."
+
+      - name: freight_value
+        description: "Shipping cost."
+
+      - name: review_score
+        description: "Customer review score."

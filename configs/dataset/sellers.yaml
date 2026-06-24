@@ -1,0 +1,34 @@
+dataset_name : sellers
+
+source:
+  format : csv
+  path : data/landing/olist_sellers_dataset.csv
+  delimiter : ","
+  header : true
+
+destination:
+  format : parquet
+  path : data/bronze/sellers
+  mode : overwrite
+
+schema :
+  module : src.schemas.bronze.seller_schema
+  variable : SELLER_SCHEMA
+
+partition:
+  enabled : false
+  columns : []
+
+quality:
+  required_columns :
+    - seller_id
+    - seller_zip_code_prefix
+    - seller_city
+    - seller_state
+  key_columns : 
+    - seller_id
+
+metadata:
+  add_ingestion_timestamp : true
+  add_source_file : true
+  add_pipeline_name : true

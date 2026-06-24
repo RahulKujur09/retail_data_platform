@@ -1,0 +1,36 @@
+dataset_name : order_reviews
+
+source:
+  format : csv
+  path : data/landing/olist_order_reviews_dataset.csv
+  delimiter : ","
+  header : true
+
+destination:
+  format : parquet
+  path : data/bronze/order_reviews
+  mode : overwrite
+
+schema :
+  module : src.schemas.bronze.order_reviews_schema
+  variable : ORDER_REVIEWS_DATASET_SCHEMA
+
+partition:
+  enabled : false
+  columns : []
+
+quality:
+  required_columns :
+    - review_id
+    - order_id
+    - review_score
+    - review_comment_title
+    - review_comment_message
+    - review_creation_date
+    - review_answer_timestamp
+  key_columns : []
+
+metadata:
+  add_ingestion_timestamp : true
+  add_source_file : true
+  add_pipeline_name : true

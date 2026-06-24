@@ -1,0 +1,14 @@
+dataset_name : products
+
+source : 
+  format : parquet
+  path : data/bronze/products
+
+destination :
+  format : parquet
+  path : data/silver/products
+  mode : overwrite
+
+transformation:
+  module: src.transformation.silver.products
+  function : transform

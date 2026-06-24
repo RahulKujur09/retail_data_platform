@@ -1,0 +1,14 @@
+dataset_name : customers
+
+source :
+  format : parquet
+  path : data/bronze/customers
+
+destination:
+  format : parquet
+  path : data/silver/customers
+  mode : overwrite
+
+transformation:
+  module : src.transformation.silver.customers
+  function : transform

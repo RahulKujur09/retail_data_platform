@@ -1,0 +1,34 @@
+dataset_name : order_payments
+
+source:
+  format : csv
+  path : data/landing/olist_order_payments_dataset.csv
+  delimiter : ","
+  header : true
+
+destination:
+  format : parquet
+  path : data/bronze/order_payments
+  mode : overwrite
+
+schema :
+  module : src.schemas.bronze.order_payments_schema
+  variable : ORDER_PAYMENTS_DATASET_SCHEMA
+
+partition:
+  enabled : false
+  columns : []
+
+quality:
+  required_columns :
+  - order_id
+  - payment_sequential
+  - payment_type
+  - payment_installments
+  - payment_value
+  key_columns : []
+
+metadata:
+  add_ingestion_timestamp : true
+  add_source_file : true
+  add_pipeline_name : true
