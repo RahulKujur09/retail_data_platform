@@ -1,5 +1,6 @@
 import importlib
 
+from src.common.paths import PROJECT_ROOT
 from src.common.bronze_config_loader import load_dataset_config
 from src.common.reader import read_data
 from src.common.writer import write_data
@@ -14,9 +15,22 @@ def ingest_to_bronze(
     dataset_name: str
 ):
 
-    config = load_dataset_config(dataset_name)
+    config = load_dataset_config(
+        dataset_name=dataset_name
+    )
+
+    config["source"]["path"] = str(
+        PROJECT_ROOT
+        / config["source"]["path"]
+    )
+
+    config["destination"]["path"] = str(
+        PROJECT_ROOT
+        / config["destination"]["path"]
+    )
 
     schema_module = config["schema"]["module"]
+
     schema_variable = config["schema"]["variable"]
 
     module = importlib.import_module(schema_module)

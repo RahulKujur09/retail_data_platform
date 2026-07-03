@@ -60,5 +60,5 @@ def main():
     run_pipeline(sys.argv[1])
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

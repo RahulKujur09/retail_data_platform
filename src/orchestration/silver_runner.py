@@ -1,4 +1,4 @@
-from src.pipelines.bronze_pipeline import run_pipeline
+from src.pipelines.silver_pipeline import run_pipeline
 
 DATASETS = [
     "customers",
@@ -14,7 +14,7 @@ DATASETS = [
 
 def main():
     for dataset in DATASETS:
-        print(f"Running bronze for {dataset}")
+        print(f"Running silver for {dataset}")
         run_pipeline(dataset)
 
 if __name__ == "__main__":

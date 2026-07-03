@@ -1,13 +1,14 @@
 from pathlib import Path
 import yaml
 
-def load_dataset_config(dataset_name: str) -> dict:
-    """
-    Loads dataset configuration yaml.
-    """
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def load_dataset_config(dataset_name):
 
     config_path = (
-        Path("configs")
+        PROJECT_ROOT
+        / "configs"
         / "silver"
         / f"{dataset_name}.yaml"
     )

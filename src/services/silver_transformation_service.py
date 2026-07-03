@@ -1,5 +1,6 @@
 import importlib
 
+from src.common.paths import PROJECT_ROOT
 from src.common.reader import read_data
 from src.common.writer import write_data
 from src.common.silver_config_loader import load_dataset_config
@@ -11,10 +12,16 @@ def transform_to_silver(
     spark,
     dataset_name: str
 ):
+
+    config = load_dataset_config(dataset_name)
     
-    config = load_dataset_config(
-        dataset_name=dataset_name
-    )
+    config["source"]["path"] = str(
+    PROJECT_ROOT / config["source"]["path"]
+        )
+
+    config["destination"]["path"] = str(
+    PROJECT_ROOT / config["destination"]["path"]
+        )
 
     transformation = config["transformation"]
 
