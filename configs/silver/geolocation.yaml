@@ -12,3 +12,16 @@ destination:
 transformation:
   module : src.transformation.silver.geolocation
   function : transform
+
+partition:
+  enabled : false
+  columns : []
+
+quality:
+  required_columns :
+    - geolocation_zip_code_prefix
+    - geolocation_lat
+    - geolocation_lng
+    - geolocation_city
+    - geolocation_state
+  key_columns : []

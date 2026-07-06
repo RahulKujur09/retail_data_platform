@@ -1,29 +1,34 @@
 from pyspark.sql import DataFrame
+from src.models.config_models import DatasetConfig
 
 
-def read_data(spark, config: dict, schema=None) -> DataFrame:
+def read_data(
+    spark,
+    config: DatasetConfig,
+    schema=None
+) -> DataFrame:
 
-    source = config["source"]
+    source = config.source
 
-    file_format = source["format"]
-
-    if file_format == "csv":
+    if source.format == "csv":
 
         reader = (
             spark.read
-            .option("header", source.get("header", True))
-            .option("delimiter", source.get("delimiter", ","))
+            .option("header", source.header)
+            .option("delimiter", source.delimiter)
         )
 
         if schema:
             reader = reader.schema(schema)
 
-        return reader.csv(source["path"])
+        return reader.csv(source.path)
 
-    elif file_format == "parquet":
+    elif source.format == "parquet":
 
-        return spark.read.parquet(source["path"])
+        return spark.read.parquet(source.path)
 
     else:
 
-        raise ValueError(f"Unsupported format : {file_format}")
+        raise ValueError(
+            f"Unsupported format: {source.format}"
+        )

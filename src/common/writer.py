@@ -1,33 +1,33 @@
 from pyspark.sql import DataFrame
+from src.models.config_models import DatasetConfig
 
 
-def write_data(df: DataFrame, config: dict):
+def write_data(
+    df: DataFrame,
+    config: DatasetConfig
+):
 
-    destination = config["destination"]
+    destination = config.destination
 
-    output_format = destination["format"]
-
-    mode = destination.get("mode", "overwrite")
-
-    path = destination["path"]
-
-    if output_format == "parquet":
+    if destination.format == "parquet":
 
         (
             df.write
-            .mode(mode)
-            .parquet(path)
+            .mode(destination.mode)
+            .parquet(destination.path)
         )
 
-    elif output_format == "csv":
+    elif destination.format == "csv":
 
         (
             df.write
-            .mode(mode)
+            .mode(destination.mode)
             .option("header", True)
-            .csv(path)
+            .csv(destination.path)
         )
 
     else:
 
-        raise ValueError(f"Unsupported output format : {output_format}")
+        raise ValueError(
+            f"Unsupported output format: {destination.format}"
+        )

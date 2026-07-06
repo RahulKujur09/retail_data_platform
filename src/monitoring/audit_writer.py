@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from src.common.paths import PROJECT_ROOT
 from pyspark.sql.types import (
     StructType,
     StructField,
@@ -34,8 +35,11 @@ def write_audit_log(
         schema=AUDIT_SCHEMA,
     )
 
+
+    AUDIT_PATH = PROJECT_ROOT/"data"/"audit"/"pipeline_runs"
+
     (
         df.write
         .mode("append")
-        .parquet("data/audit/pipeline_runs")
+        .parquet(str(AUDIT_PATH))
     )
