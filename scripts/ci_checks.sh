@@ -7,5 +7,5 @@ python -m ensurepip --upgrade || true
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt pytest
 
-python -m pytest -q
+python -m pytest -q tests
 python healthcheck.py

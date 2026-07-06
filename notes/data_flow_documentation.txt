@@ -1,0 +1,335 @@
+Retail Data Platform - CSV to Destination Data Flow
+==================================================
+
+1. Overview
+-----------
+This project takes CSV files from the landing area, ingests them into the Bronze layer as Parquet, transforms them into the Silver layer, loads them into DuckDB, and then uses dbt to create analytics-ready models. The flow is orchestrated by the main application entry point and by Airflow DAGs.
+
+2. End-to-End Data Journey
+--------------------------
+
+Step 1: Entry Point
+-------------------
+File: app.py
+
+Purpose:
+- This is the main pipeline entry point.
+- It iterates over the configured datasets.
+- For each dataset, it runs:
+  1. Bronze ingestion
+  2. Silver transformation
+  3. DuckDB loading
+  4. dbt run and dbt snapshot
+
+What it does:
+- Calls bronze_pipeline.run_pipeline(dataset)
+- Calls silver_pipeline.run_pipeline(dataset)
+- Calls the DuckDB loader
+- Runs dbt commands via subprocess
+
+Step 2: Dataset Configuration Loading
+------------------------------------
+Files:
+- src/common/bronze_config_loader.py
+- src/common/silver_config_loader.py
+
+Purpose:
+- Each dataset has a YAML configuration file stored under configs/dataset/ or configs/silver/.
+- These files define:
+  - source path
+  - destination path
+  - schema module and variable
+  - quality rules
+  - transformation logic
+
+How it works:
+- The loader reads the YAML file for the current dataset.
+- It converts the YAML content into a DatasetConfig object using Pydantic.
+- These config objects tell the pipeline where to read data from, where to write it, and how to validate/transform it.
+
+Step 3: Reading the CSV Input
+-----------------------------
+File: src/common/reader.py
+
+Purpose:
+- Reads data from the configured source format.
+- For this project, the source is usually CSV.
+
+How it works:
+- It reads the file path from the config object.
+- If the source format is csv, it uses Spark to read the CSV with:
+  - header enabled
+  - delimiter support
+  - optional schema application
+- The CSV data is loaded into a Spark DataFrame.
+
+Important note:
+- The CSV data is not stored in memory permanently; it is loaded into a Spark DataFrame for processing.
+
+Step 4: Bronze Ingestion
+------------------------
+File: src/services/bronze_ingestion_service.py
+
+Purpose:
+- This is the first durable storage layer.
+- It reads the source CSV, validates it, enriches it, and writes it to Bronze Parquet.
+
+Flow inside the bronze service:
+1. Load dataset config
+2. Resolve source and destination paths relative to the project root
+3. Load the schema definition from the schema module
+4. Read the CSV into a Spark DataFrame
+5. Count records read
+6. Check whether Bronze data already exists
+7. Use incremental logic to avoid reprocessing already known records
+8. Validate the dataframe
+9. Add metadata columns
+10. Write the data to Parquet in the Bronze folder
+
+Where the data is stored:
+- Bronze output path: data/bronze/<dataset_name>
+- Storage format: Parquet
+
+What is added during Bronze:
+- _ingestion_timestamp
+- _load_date
+- _source_file
+- _dataset_name
+- _pipeline_version
+
+File: src/services/enrichment.py
+- Adds metadata columns to the dataframe before writing to Parquet.
+
+File: src/common/incremental_loader.py
+- Prevents duplicate records from being reloaded by comparing source and existing target records using key columns.
+
+Step 5: Silver Transformation
+-----------------------------
+File: src/services/silver_transformation_service.py
+
+Purpose:
+- Reads the Bronze Parquet data.
+- Applies transformation logic.
+- Validates the transformed data.
+- Writes the result to the Silver layer.
+
+Flow inside the silver service:
+1. Load the silver config for the dataset
+2. Resolve source and destination paths
+3. Read the Bronze Parquet data from the Bronze path
+4. Count records read
+5. Load the configured transformation function from the transformation module
+6. Apply the transformation function to the dataframe
+7. Validate the dataframe using quality rules
+8. Write the transformed dataframe to Silver Parquet
+
+Where the data is stored:
+- Silver output path: data/silver/<dataset_name>
+- Storage format: Parquet
+
+Step 6: Validation and Data Quality Checks
+-----------------------------------------
+Files:
+- src/validation/quality.py
+- src/validation/rules.py
+
+Purpose:
+- Ensures each dataset is valid before it is stored or used downstream.
+
+Validation checks include:
+- DataFrame is not empty
+- Required columns exist
+- Null values are not present in key columns
+- Duplicate key combinations are not present
+
+If any validation fails, the pipeline stops and an audit record is written.
+
+Step 7: Audit Logging
+---------------------
+Files:
+- src/monitoring/audit_logger.py
+- src/monitoring/audit_writer.py
+
+Purpose:
+- Records every pipeline run for operational traceability.
+
+What gets logged:
+- run_id
+- pipeline_name
+- dataset_name
+- start_time
+- end_time
+- duration_seconds
+- status
+- records_read
+- records_written
+- error_message
+
+Where it is stored:
+- data/audit/pipeline_runs as Parquet files
+
+This audit trail allows you to inspect whether the bronze or silver stage succeeded or failed.
+
+Step 8: DuckDB Load
+-------------------
+File: src/services/duckdb_loader_service.py
+
+Purpose:
+- Reads the Parquet files from the Silver layer and loads them into DuckDB tables.
+
+How it works:
+1. Connect to the DuckDB database located at retail.duckdb
+2. Create or replace a table for the dataset
+3. Read all Parquet files from the Silver folder using read_parquet
+4. Load the data into a DuckDB table
+
+Where the data is stored:
+- DuckDB database file: retail.duckdb
+
+How it is used:
+- These tables are then available for analytics queries and downstream transformations.
+
+Step 9: dbt Modeling
+--------------------
+Files:
+- src/orchestration/dbt_runner.py
+- dbt/dbt_project.yml
+- dbt/models/...
+
+Purpose:
+- dbt takes the data already loaded into the warehouse or available through the project data sources and creates staging and mart models.
+
+How it works:
+- The dbt runner executes:
+  - dbt run
+  - dbt snapshot
+- dbt models are built from the underlying data and transformed into analytics-ready tables.
+
+Where the data is stored:
+- dbt build results and target artifacts go into dbt/target/
+- The modeled data is represented as dbt models, not as a separate data lake storage layer in this project.
+
+Step 10: Destination / Final Use
+--------------------------------
+The data ultimately reaches one or more of these destinations:
+- Parquet files in the Bronze folder
+- Parquet files in the Silver folder
+- DuckDB tables in retail.duckdb
+- dbt models and snapshots in the dbt project
+- Audit logs in data/audit/pipeline_runs
+
+3. File-by-File Data Flow Summary
+---------------------------------
+
+Root entry points:
+- app.py
+  Orchestrates the overall pipeline.
+
+Orchestration:
+- dags/retail_dag.py
+  Airflow DAG that runs the same sequence as app.py.
+
+Pipeline runners:
+- src/orchestration/bronze_runner.py
+  Runs bronze data processing for each dataset.
+- src/orchestration/silver_runner.py
+  Runs silver processing for each dataset.
+- src/orchestration/duckdb_runner.py
+  Loads silver parquet data into DuckDB.
+- src/orchestration/dbt_runner.py
+  Executes dbt run and dbt snapshot.
+
+Config loading:
+- src/common/bronze_config_loader.py
+  Loads bronze dataset YAML configuration.
+- src/common/silver_config_loader.py
+  Loads silver dataset YAML configuration.
+
+Reading/writing:
+- src/common/reader.py
+  Reads CSV/Parquet source data into Spark.
+- src/common/writer.py
+  Writes processed data to Parquet.
+
+Service layer:
+- src/services/bronze_ingestion_service.py
+  Reads CSV -> validates -> enriches -> writes Bronze Parquet.
+- src/services/silver_transformation_service.py
+  Reads Bronze Parquet -> transforms -> validates -> writes Silver Parquet.
+- src/services/duckdb_loader_service.py
+  Reads Silver Parquet -> creates DuckDB tables.
+- src/services/enrichment.py
+  Adds metadata columns during bronze load.
+
+Validation:
+- src/validation/quality.py
+  Calls validation rules.
+- src/validation/rules.py
+  Checks required columns, duplicates, nulls, emptiness.
+
+Monitoring:
+- src/monitoring/audit_logger.py
+  Creates audit event objects.
+- src/monitoring/audit_writer.py
+  Writes those events to Parquet audit storage.
+
+4. Diagram
+----------
+[CSV file in data/landing or configured input path]
+        |
+        v
+[src/common/reader.py]
+        |
+        v
+[Spark DataFrame]
+        |
+        v
+[src/services/bronze_ingestion_service.py]
+        |
+        +--> validate data
+        |
+        +--> add metadata
+        |
+        +--> write to Parquet
+                    |
+                    v
+            [data/bronze/<dataset>]
+                    |
+                    v
+[src/services/silver_transformation_service.py]
+        |
+        +--> read Bronze Parquet
+        |
+        +--> apply transformation logic
+        |
+        +--> validate transformed data
+        |
+        +--> write to Parquet
+                    |
+                    v
+            [data/silver/<dataset>]
+                    |
+                    v
+[src/services/duckdb_loader_service.py]
+        |
+        v
+[retail.duckdb]
+        |
+        v
+[dbt models and snapshots]
+        |
+        v
+[Analytics-ready destination]
+
+5. Important Storage Locations
+-----------------------------
+- CSV input source: configured by YAML files under configs/dataset/ or configs/silver/
+- Bronze storage: data/bronze/
+- Silver storage: data/silver/
+- Audit storage: data/audit/pipeline_runs/
+- DuckDB storage: retail.duckdb
+- dbt outputs: dbt/target/
+
+6. Summary
+----------
+The CSV data enters the project through a configured source path, is loaded into Spark, stored in Bronze Parquet with metadata, transformed into Silver Parquet, loaded into DuckDB, and then modeled with dbt for analytics consumption. Each stage is validated and logged for traceability.

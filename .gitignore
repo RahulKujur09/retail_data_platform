@@ -22,8 +22,6 @@ dist/
 build/
 app_test
 app_test.ipynb
-tests/
-tests
 __pycache__/
 *.pyc
 .ipynb_checkpoints/

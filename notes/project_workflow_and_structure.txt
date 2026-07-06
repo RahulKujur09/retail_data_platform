@@ -1,0 +1,262 @@
+Retail Data Platform - Full Workflow and File/Folder Guide
+==========================================================
+
+1. Project Overview
+-------------------
+This repository implements a retail data platform using a medallion-style architecture:
+- Bronze: raw ingested data
+- Silver: cleaned and standardized data
+- DuckDB: compute layer over Parquet data
+- dbt: staging and mart modeling
+- Gold/analytics: business-ready analytical models
+
+The project is designed to run locally and in Docker, with Airflow orchestration and CI/CD workflows.
+
+2. Root Files and Their Purpose
+-------------------------------
+- app.py
+  Entry-point script for the main pipeline. It runs bronze, silver, DuckDB loading, and dbt tasks.
+
+- Dockerfile
+  Container definition for the main application service. Builds the Python runtime, installs dependencies, and runs the app.
+
+- docker-compose.yaml
+  Docker Compose configuration for running the project stack locally, including Airflow services and supporting infrastructure.
+
+- pyproject.toml
+  Python project metadata and dependency definition.
+
+- requirements.txt
+  Python runtime dependencies used by the project.
+
+- .env.example
+  Template for environment variables required by Docker/Airflow.
+
+- .dockerignore
+  Files excluded from Docker build context.
+
+- healthcheck.py
+  Basic health check script used by container health checks.
+
+- README.md
+  High-level project documentation.
+
+- README.Docker.md
+  Docker-specific documentation.
+
+- retail.duckdb
+  DuckDB database file used by the analytics layer.
+
+3. CI/CD Files
+--------------
+- .github/workflows/ci.yml
+  CI workflow that runs on push and pull request. It checks out the repo, sets up Python 3.12, and runs the shared validation script.
+
+- .github/workflows/cd.yml
+  CD workflow that runs on manual trigger, pushes to main/master, and tags. It reuses CI, builds/pushes Docker images to GitHub Container Registry, and includes a deploy placeholder step.
+
+- scripts/ci_checks.sh
+  Shared CI validation script. Installs dependencies, runs tests, and executes the health check.
+
+- scripts/deploy.sh
+  Deployment helper script placeholder for connecting the project to a real deployment target.
+
+4. Folder-by-Folder Guide
+--------------------------
+
+4.1 config/
+-----------
+Contains Airflow configuration files such as airflow.cfg.
+These files support the Airflow runtime and environment setup.
+
+4.2 configs/
+------------
+Contains YAML configuration for the project.
+- app.yaml
+  General application configuration such as project name, environment, Spark settings, and storage format.
+- logging.yaml
+  Logging configuration for the platform.
+- paths.yaml
+  Path definitions used across the project.
+- dataset/
+  Dataset-specific config files or directories.
+- gold/
+  Gold-layer config/data directories.
+- silver/
+  Silver-layer config/data directories.
+
+4.3 dags/
+---------
+Contains Airflow DAG definitions.
+- retail_dag.py
+  Defines the main pipeline DAG that orchestrates Bronze -> Silver -> DuckDB -> dbt tasks.
+
+4.4 data/
+---------
+Stores raw and processed datasets.
+- landing/
+  Raw ingested data landing zone.
+- bronze/
+  Bronze layer parquet data.
+- silver/
+  Silver layer parquet data.
+- audit/
+  Audit and pipeline run logs.
+
+4.5 dbt/
+--------
+Contains dbt project files and models.
+- dbt_project.yml
+  dbt project configuration.
+- profiles.yml
+  dbt connection/profile configuration.
+- models/
+  dbt models for staging and marts.
+- snapshots/
+  dbt snapshots for slowly changing dimensions (SCD) or temporal history models.
+- target/
+  dbt build artifacts and compiled outputs.
+- logs/
+  dbt execution logs.
+
+4.6 docs/
+---------
+Project documentation and architecture diagrams.
+- architecture.md
+  Architecture overview.
+- data_quality.md
+  Data quality expectations and rules.
+- diagrams and screenshots are also stored here.
+
+4.7 airflow/
+------------
+Contains Airflow-specific container configuration.
+- Dockerfile
+  Container image for Airflow services.
+
+4.8 src/
+--------
+Core Python source package.
+
+4.8.1 src/common/
+-----------------
+Common helpers used across the codebase.
+- config.py
+  YAML loading utility.
+- logger.py
+  Central logging configuration.
+- paths.py
+  Path constants for the repository.
+- reader.py
+  Utility to read data from supported formats.
+- retry.py
+  Retry wrapper for orchestration steps.
+- spark.py
+  Spark session creation helper.
+- writer.py
+  Utility to write data to supported formats.
+
+4.8.2 src/models/
+-----------------
+Pydantic model definitions for configs.
+- config_models.py
+  Defines configuration models for source, destination, quality, and transformation settings.
+
+4.8.3 src/orchestration/
+------------------------
+Pipeline orchestrators.
+- bronze_runner.py
+  Runs bronze ingestion tasks.
+- silver_runner.py
+  Runs silver transformation tasks.
+- duckdb_runner.py
+  Loads silver Parquet data into DuckDB.
+- dbt_runner.py
+  Executes dbt run and snapshot commands.
+
+4.8.4 src/pipelines/
+--------------------
+Pipeline execution entry points.
+- bronze_pipeline.py
+  Runs bronze ingestion pipeline for a given dataset.
+- silver_pipeline.py
+  Runs silver transformation pipeline for a given dataset.
+
+4.8.5 src/services/
+-------------------
+Business logic services for data processing.
+- bronze_ingestion_service.py
+  Ingests raw data into bronze layer.
+- silver_transformation_service.py
+  Transforms bronze data into silver layer.
+- duckdb_loader_service.py
+  Loads silver data into DuckDB.
+
+4.8.6 src/monitoring/
+---------------------
+Monitoring and audit support.
+- audit_logger.py
+  Creates structured audit records for pipeline runs.
+- audit_writer.py
+  Writes audit records in Parquet.
+
+4.8.7 src/validation/
+---------------------
+Data quality and validation utilities.
+- quality.py
+  High-level validation wrapper.
+- rules.py
+  Validation rules for emptiness, required columns, null keys, and duplicate keys.
+
+4.9 tests/
+----------
+Basic tests for core utilities.
+- test_reader.py
+  Tests unsupported input format for the reader.
+- test_writer.py
+  Tests unsupported output format for the writer.
+- test_quality.py
+  Placeholder/empty test file for future quality tests.
+
+4.10 logs/
+----------
+Runtime logs generated by the application and pipeline jobs.
+
+4.11 plugins/
+-------------
+Airflow plugins directory.
+
+5. Runtime Workflow
+--------------------
+The runtime flow is approximately:
+1. app.py starts the pipeline.
+2. Bronze ingestion runs for each dataset.
+3. Silver transformation runs for each dataset.
+4. Data is loaded into DuckDB.
+5. dbt run and dbt snapshot are executed.
+6. Audit logs are written.
+7. Airflow orchestrates the same sequence via the DAG in dags/retail_dag.py.
+
+6. CI/CD Workflow Overview
+--------------------------
+CI:
+- Triggered on push to main/master and on pull requests.
+- Runs the CI script.
+- Installs dependencies.
+- Executes test suite.
+- Executes health check.
+
+CD:
+- Triggered manually or on push to main/master or tags.
+- Reuses CI.
+- Builds the main application Docker image.
+- Builds the Airflow Docker image.
+- Pushes images to GitHub Container Registry.
+- Includes a deployment placeholder step for the target environment.
+
+7. Current Implementation Status
+-------------------------------
+CI/CD is implemented at a foundational level:
+- CI is active and functional.
+- CD is implemented as a build-and-push pipeline with a deployment placeholder.
+- The workflow is ready to be connected to a real deployment target such as Docker Compose, SSH, Kubernetes, or a cloud platform.
