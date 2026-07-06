@@ -1,10 +1,11 @@
 project:
-  name : retail-data-platform
-  enviroment : local
+  name: retail-data-platform
+  environment: local
 
-spark : 
+spark:
   app_name: RetailDataPlatform
-  master : local[*]
+  master: local[*]
 
 storage:
-  formate: parquet
+  format: parquet
+  output_mode: overwrite

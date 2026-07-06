@@ -1,3 +1,5 @@
+from src.common.logger import logger
+from src.common.retry import retry
 from src.pipelines.bronze_pipeline import run_pipeline
 
 DATASETS = [
@@ -12,10 +14,15 @@ DATASETS = [
     "product_category_name_translation"
 ]
 
+@retry("bronze pipeline", retries=2, delay_seconds=2.0)
+def _run_dataset(dataset: str) -> None:
+    logger.info("Running bronze for %s", dataset)
+    run_pipeline(dataset)
+
+
 def main():
     for dataset in DATASETS:
-        print(f"Running bronze for {dataset}")
-        run_pipeline(dataset)
+        _run_dataset(dataset)
 
 if __name__ == "__main__":
     main()

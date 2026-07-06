@@ -172,3 +172,13 @@ CI/CD
 Great Expectations
 
 Cloud Deployment
+
+## Production readiness additions
+
+- CI workflow added under [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- CD workflow added under [.github/workflows/cd.yml](.github/workflows/cd.yml)
+- Example environment variables are available in [.env.example](.env.example)
+- Health checks are available via [healthcheck.py](healthcheck.py)
+- Container images now include health checks in [Dockerfile](Dockerfile) and [airflow/Dockerfile](airflow/Dockerfile)
+- Retry handling was added in [src/common/retry.py](src/common/retry.py) for orchestration steps
+- Deployment helper script is available at [scripts/deploy.sh](scripts/deploy.sh)
